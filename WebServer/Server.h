@@ -1,20 +1,25 @@
 // @Author Lin Ya
 // @Email xxbbb@vip.qq.com
 #pragma once
+
 #include "EventLoop.h"
 #include "Channel.h"
 #include "EventLoopThreadPool.h"
 #include <memory>
 
 
-class Server
-{
+class Server {
 public:
     Server(EventLoop *loop, int threadNum, int port);
-    ~Server() { }
-    EventLoop* getLoop() const { return loop_; }
+
+    ~Server() {}
+
+    EventLoop *getLoop() const { return loop_; }
+
     void start();
+
     void handNewConn();
+
     void handThisConn() { loop_->updatePoller(acceptChannel_); }
 
 private:

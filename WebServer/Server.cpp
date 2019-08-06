@@ -10,25 +10,22 @@
 
 
 Server::Server(EventLoop *loop, int threadNum, int port)
-:   loop_(loop),
-    threadNum_(threadNum),
-    eventLoopThreadPool_(new EventLoopThreadPool(loop_, threadNum)),
-    started_(false),
-    acceptChannel_(new Channel(loop_)),
-    port_(port),
-    listenFd_(socket_bind_listen(port_))
-{
+        : loop_(loop),
+          threadNum_(threadNum),
+          eventLoopThreadPool_(new EventLoopThreadPool(loop_, threadNum)),
+          started_(false),
+          acceptChannel_(new Channel(loop_)),
+          port_(port),
+          listenFd_(socket_bind_listen(port_)) {
     acceptChannel_->setFd(listenFd_);
     handle_for_sigpipe();
-    if (setSocketNonBlocking(listenFd_) < 0)
-    {
+    if (setSocketNonBlocking(listenFd_) < 0) {
         perror("set socket non block failed");
         abort();
     }
 }
 
-void Server::start()
-{
+void Server::start() {
     eventLoopThreadPool_->start();
     //acceptChannel_->setEvents(EPOLLIN | EPOLLET | EPOLLONESHOT);
     acceptChannel_->setEvents(EPOLLIN | EPOLLET);
@@ -38,16 +35,16 @@ void Server::start()
     started_ = true;
 }
 
-void Server::handNewConn()
-{
+void Server::handNewConn() {
     struct sockaddr_in client_addr;
     memset(&client_addr, 0, sizeof(struct sockaddr_in));
     socklen_t client_addr_len = sizeof(client_addr);
     int accept_fd = 0;
-    while((accept_fd = accept(listenFd_, (struct sockaddr*)&client_addr, &client_addr_len)) > 0)
-    {
+    while ((accept_fd = accept(listenFd_, (struct sockaddr *) &client_addr, &client_addr_len)) >
+           0) {
         EventLoop *loop = eventLoopThreadPool_->getNextLoop();
-        LOG << "New connection from " << inet_ntoa(client_addr.sin_addr) << ":" << ntohs(client_addr.sin_port);
+        LOG << "New connection from " << inet_ntoa(client_addr.sin_addr) << ":"
+            << ntohs(client_addr.sin_port);
         // cout << "new connection" << endl;
         // cout << inet_ntoa(client_addr.sin_addr) << endl;
         // cout << ntohs(client_addr.sin_port) << endl;
@@ -59,14 +56,12 @@ void Server::handNewConn()
         cout << "optval ==" << optval << endl;
         */
         // 限制服务器的最大并发连接数
-        if (accept_fd >= MAXFDS)
-        {
+        if (accept_fd >= MAXFDS) {
             close(accept_fd);
             continue;
         }
         // 设为非阻塞模式
-        if (setSocketNonBlocking(accept_fd) < 0)
-        {
+        if (setSocketNonBlocking(accept_fd) < 0) {
             LOG << "Set non block failed!";
             //perror("Set non block failed!");
             return;
